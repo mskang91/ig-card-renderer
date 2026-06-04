@@ -35,6 +35,7 @@ function fontFamily(buf) {
 
 let _fonts = null;
 let _fontDiag = [];
+let _fontDir = null;
 async function getFonts() {
   if (_fonts) return _fonts;
   const bufs = [];
@@ -51,7 +52,7 @@ async function getFonts() {
         const files = fs.readdirSync(dir).filter(f => /\.(ttf|otf)$/i.test(f));
         _fontDiag.push(dir + ' => ' + files.length);
         for (const f of files) { try { bufs.push(fs.readFileSync(path.join(dir, f))); } catch (e) {} }
-        if (bufs.length) break;
+        if (bufs.length) { _fontDir = dir; break; }
       } else { _fontDiag.push(dir + ' => none'); }
     } catch (e) { _fontDiag.push(dir + ' => err ' + e.message); }
   }
@@ -84,18 +85,18 @@ ${DEFS}
 <circle cx="250" cy="150" r="260" fill="#7c3aed" opacity="0.18" filter="url(#softglow)"/>
 <circle cx="900" cy="700" r="220" fill="#8b5cf6" opacity="0.12" filter="url(#softglow)"/>
 <g transform="translate(72,84)"><circle cx="14" cy="6" r="14" fill="url(#violet)"/><text x="42" y="14" fill="#ffffff" font-size="30" font-weight="700">polarisquant</text></g>
-<text x="1008" y="98" text-anchor="end" fill="#9b93c4" font-size="26" font-weight="500">${date}</text>
+<text x="1008" y="98" text-anchor="end" fill="#9b93c4" font-size="26" font-weight="400">${date}</text>
 <rect x="72" y="128" width="936" height="2" fill="#ffffff" opacity="0.08"/>
-<text x="72" y="276" fill="#c4b5fd" font-size="32" font-weight="600" letter-spacing="3">${sub}</text>
-<text x="72" y="360" fill="#ffffff" font-size="74" font-weight="800">${h1}</text>
-<text x="72" y="448" fill="#ffffff" font-size="74" font-weight="800">${h2}<tspan fill="#a78bfa">${h2acc}</tspan></text>`;
+<text x="72" y="276" fill="#c4b5fd" font-size="32" font-weight="700" letter-spacing="3">${sub}</text>
+<text x="72" y="360" fill="#ffffff" font-size="74" font-weight="700">${h1}</text>
+<text x="72" y="448" fill="#ffffff" font-size="74" font-weight="700">${h2}<tspan fill="#a78bfa">${h2acc}</tspan></text>`;
 }
 
 function foot(q) {
   const unit = esc(q.unit || '');
   return `<rect x="72" y="1030" width="936" height="2" fill="#ffffff" opacity="0.06"/>
-<text x="72" y="1066" fill="#7c76a3" font-size="25" font-weight="500">${unit}</text>
-<text x="1008" y="1066" text-anchor="end" fill="#9b93c4" font-size="25" font-weight="600">@polarisquant · 데이터로 읽는 시장</text>
+<text x="72" y="1066" fill="#7c76a3" font-size="25" font-weight="400">${unit}</text>
+<text x="1008" y="1066" text-anchor="end" fill="#9b93c4" font-size="25" font-weight="700">@polarisquant · 데이터로 읽는 시장</text>
 </svg>`;
 }
 
@@ -116,8 +117,8 @@ function buildBar(q) {
     const valColor = v < 0 ? '#f9a8d4' : '#ddd6fe';
     const valTxt = (v >= 0 ? '+' : '') + v;
     bars += `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${barW.toFixed(0)}" height="${h.toFixed(0)}" rx="10" fill="${fill}" filter="url(#glow)"/>
-<text x="${cx.toFixed(0)}" y="${valY.toFixed(0)}" text-anchor="middle" fill="${valColor}" font-size="40" font-weight="800">${esc(valTxt)}</text>
-<text x="${cx.toFixed(0)}" y="1004" text-anchor="middle" fill="#cbd5e1" font-size="34" font-weight="600">${esc(labels[i])}</text>`;
+<text x="${cx.toFixed(0)}" y="${valY.toFixed(0)}" text-anchor="middle" fill="${valColor}" font-size="40" font-weight="700">${esc(valTxt)}</text>
+<text x="${cx.toFixed(0)}" y="1004" text-anchor="middle" fill="#cbd5e1" font-size="34" font-weight="700">${esc(labels[i])}</text>`;
   }
   return head(q) + `<line x1="120" y1="${baseline}" x2="960" y2="${baseline}" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2"/>` + bars + foot(q);
 }
@@ -136,7 +137,7 @@ module.exports = async (req, res) => {
     if (q.debug) { res.status(200).json({ cwd: process.cwd(), dirname: __dirname, fontCount: fonts.length, diag: _fontDiag, families: fonts.map(fontFamily) }); return; }
     const svg = buildSvg(q);
     const resvg = new Resvg(svg, {
-      font: { fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: false },
+      font: { fontDirs: _fontDir ? [_fontDir] : [], fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: false },
       fitTo: { mode: 'width', value: 1080 }
     });
     const png = resvg.render().asPng();
