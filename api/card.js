@@ -4,25 +4,26 @@ const path = require('path');
 
 // 한글 폰트 로드 — 번들(fonts/ 폴더의 ttf/otf) 우선, 없으면 CDN fetch. 1회 캐시.
 let _fonts = null;
+let _fontDiag = [];
 async function getFonts() {
   if (_fonts) return _fonts;
   const bufs = [];
-  try {
-    const dir = path.join(process.cwd(), 'fonts');
-    if (fs.existsSync(dir)) {
-      for (const f of fs.readdirSync(dir)) {
-        if (/\.(ttf|otf)$/i.test(f)) { try { bufs.push(fs.readFileSync(path.join(dir, f))); } catch (e) {} }
-      }
-    }
-  } catch (e) {}
-  if (bufs.length === 0) {
-    const urls = [
-      'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/public/static/Pretendard-Bold.ttf',
-      'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/public/static/Pretendard-Regular.ttf'
-    ];
-    for (const u of urls) {
-      try { const r = await fetch(u); if (r.ok) bufs.push(Buffer.from(await r.arrayBuffer())); } catch (e) {}
-    }
+  _fontDiag = [];
+  const dirs = [
+    path.join(process.cwd(), 'fonts'),
+    path.join(__dirname, 'fonts'),
+    path.join(__dirname, '..', 'fonts'),
+    '/var/task/fonts'
+  ];
+  for (const dir of dirs) {
+    try {
+      if (fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir).filter(f => /\.(ttf|otf)$/i.test(f));
+        _fontDiag.push(dir + ' => ' + files.length);
+        for (const f of files) { try { bufs.push(fs.readFileSync(path.join(dir, f))); } catch (e) {} }
+        if (bufs.length) break;
+      } else { _fontDiag.push(dir + ' => none'); }
+    } catch (e) { _fontDiag.push(dir + ' => err ' + e.message); }
   }
   _fonts = bufs;
   return bufs;
@@ -100,8 +101,10 @@ function buildSvg(q) {
 
 module.exports = async (req, res) => {
   try {
-    const svg = buildSvg(req.query || {});
+    const q = req.query || {};
     const fonts = await getFonts();
+    if (q.debug) { res.status(200).json({ cwd: process.cwd(), dirname: __dirname, fontCount: fonts.length, diag: _fontDiag }); return; }
+    const svg = buildSvg(q);
     const resvg = new Resvg(svg, {
       font: { fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: true },
       fitTo: { mode: 'width', value: 1080 }
