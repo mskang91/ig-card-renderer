@@ -80,11 +80,11 @@ function head(q) {
   const h2 = esc(q.h2 || '');
   const h2acc = esc(q.h2acc || '');
   const date = esc(q.date || '');
-  return `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard">
+  return `<svg width="1080" height="1350" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard">
 ${DEFS}
-<rect width="1080" height="1080" fill="url(#bg)"/>
+<rect width="1080" height="1350" fill="url(#bg)"/>
 <circle cx="250" cy="150" r="260" fill="#7c3aed" opacity="0.18" filter="url(#softglow)"/>
-<circle cx="900" cy="700" r="220" fill="#8b5cf6" opacity="0.12" filter="url(#softglow)"/>
+<circle cx="900" cy="980" r="240" fill="#8b5cf6" opacity="0.12" filter="url(#softglow)"/>
 <g transform="translate(72,84)"><circle cx="14" cy="6" r="14" fill="url(#violet)"/><text x="42" y="14" fill="#ffffff" font-size="30" font-weight="700">polarisquant</text></g>
 <text x="1008" y="98" text-anchor="end" fill="#9b93c4" font-size="26" font-weight="400">${date}</text>
 <rect x="72" y="128" width="936" height="2" fill="#ffffff" opacity="0.08"/>
@@ -95,9 +95,9 @@ ${DEFS}
 
 function foot(q) {
   const unit = esc(q.unit || '');
-  return `<rect x="72" y="1030" width="936" height="2" fill="#ffffff" opacity="0.06"/>
-<text x="72" y="1066" fill="#7c76a3" font-size="25" font-weight="400">${unit}</text>
-<text x="1008" y="1066" text-anchor="end" fill="#9b93c4" font-size="25" font-weight="700">@polarisquant · 데이터로 읽는 시장</text>
+  return `<rect x="72" y="1296" width="936" height="2" fill="#ffffff" opacity="0.06"/>
+<text x="72" y="1332" fill="#7c76a3" font-size="25" font-weight="400">${unit}</text>
+<text x="1008" y="1332" text-anchor="end" fill="#9b93c4" font-size="25" font-weight="700">@polarisquant · 데이터로 읽는 시장</text>
 </svg>`;
 }
 
@@ -105,7 +105,7 @@ function buildBar(q) {
   const labels = (q.labels || '외국인,기관,개인').split(',');
   const values = (q.values || '-6.95,1.81,5.02').split(',').map(Number);
   const maxAbs = Math.max.apply(null, values.map(Math.abs).concat([1]));
-  const baseline = 770, maxBarH = 200, unit = maxBarH / maxAbs;
+  const baseline = 960, maxBarH = 250, unit = maxBarH / maxAbs;
   const n = values.length, slotW = 840 / n, barW = Math.min(180, slotW * 0.62);
   let bars = '';
   for (let i = 0; i < n; i++) {
@@ -119,7 +119,7 @@ function buildBar(q) {
     const valTxt = (v >= 0 ? '+' : '') + v;
     bars += `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${barW.toFixed(0)}" height="${h.toFixed(0)}" rx="10" fill="${fill}" filter="url(#glow)"/>
 <text x="${cx.toFixed(0)}" y="${valY.toFixed(0)}" text-anchor="middle" fill="${valColor}" font-size="40" font-weight="700">${esc(valTxt)}</text>
-<text x="${cx.toFixed(0)}" y="1004" text-anchor="middle" fill="#cbd5e1" font-size="34" font-weight="700">${esc(labels[i])}</text>`;
+<text x="${cx.toFixed(0)}" y="1245" text-anchor="middle" fill="#cbd5e1" font-size="34" font-weight="700">${esc(labels[i])}</text>`;
   }
   return head(q) + `<line x1="120" y1="${baseline}" x2="960" y2="${baseline}" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2"/>` + bars + foot(q);
 }
@@ -133,11 +133,11 @@ function scaleY(vals, yTop, yBot) {
 function buildLine(q) {
   var vals = (q.vals || '').split(',').map(Number).filter(function (v) { return !isNaN(v); });
   if (vals.length < 2) vals = [1, 2, 1.5, 3, 2.5, 4];
-  var x0 = 110, x1 = 970, yTop = 560, yBot = 900, n = vals.length;
+  var x0 = 110, x1 = 970, yTop = 640, yBot = 1160, n = vals.length;
   var ys = scaleY(vals, yTop, yBot);
   var pts = ys.map(function (y, i) { return (x0 + (x1 - x0) * i / (n - 1)).toFixed(0) + ',' + y.toFixed(0); });
   return head(q)
-    + '<path d="M' + pts.join(' L') + ' L' + x1 + ',960 L' + x0 + ',960 Z" fill="url(#areaFill)"/>'
+    + '<path d="M' + pts.join(' L') + ' L' + x1 + ',1200 L' + x0 + ',1200 Z" fill="url(#areaFill)"/>'
     + '<polyline points="' + pts.join(' ') + '" fill="none" stroke="url(#violet)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>'
     + '<circle cx="' + x1 + '" cy="' + ys[n - 1].toFixed(0) + '" r="13" fill="#a78bfa" filter="url(#glow)"/>'
     + foot(q);
@@ -146,7 +146,7 @@ function buildLine(q) {
 function buildArea(q) {
   var svg = buildLine(q);
   if (q.price) {
-    var box = '<g transform="translate(700,520)"><rect x="0" y="0" width="280" height="74" rx="14" fill="#1c1442" stroke="#7c3aed" stroke-opacity="0.6" stroke-width="2"/><text x="24" y="48" fill="#ffffff" font-size="40" font-weight="700">' + esc(q.price) + '</text></g>';
+    var box = '<g transform="translate(700,600)"><rect x="0" y="0" width="280" height="74" rx="14" fill="#1c1442" stroke="#7c3aed" stroke-opacity="0.6" stroke-width="2"/><text x="24" y="48" fill="#ffffff" font-size="40" font-weight="700">' + esc(q.price) + '</text></g>';
     svg = svg.replace('</svg>', box + '</svg>');
   }
   return svg;
@@ -157,7 +157,7 @@ function buildDonut(q) {
   if (!segs.length) segs = [40, 25, 15, 20];
   var names = (q.names || '').split(',');
   var total = segs.reduce(function (a, b) { return a + b; }, 0) || 1;
-  var R = 168, cx = 540, cy = 690, circ = 2 * Math.PI * R;
+  var R = 182, cx = 540, cy = 800, circ = 2 * Math.PI * R;
   var colors = ['#c4b5fd', '#a78bfa', '#7c3aed', '#3f3a63', '#f472b6'];
   var off = 0, arcs = '';
   for (var i = 0; i < segs.length; i++) {
@@ -165,10 +165,10 @@ function buildDonut(q) {
     arcs += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="' + colors[i % colors.length] + '" stroke-width="60" stroke-dasharray="' + len.toFixed(0) + ' ' + (circ - len).toFixed(0) + '" stroke-dashoffset="' + (-off).toFixed(0) + '"/>';
     off += len;
   }
-  var center = '<text x="' + cx + '" y="668" text-anchor="middle" fill="#9b93c4" font-size="26" font-weight="700">' + esc(q.c1 || '') + '</text>'
-    + '<text x="' + cx + '" y="722" text-anchor="middle" fill="#ffffff" font-size="50" font-weight="700">' + esc(q.c2 || '') + '</text>'
-    + '<text x="' + cx + '" y="760" text-anchor="middle" fill="#a78bfa" font-size="30" font-weight="700">' + esc(q.c3 || '') + '</text>';
-  var legend = '', lx = [150, 600, 150, 600], ly = [906, 906, 956, 956];
+  var center = '<text x="' + cx + '" y="778" text-anchor="middle" fill="#9b93c4" font-size="26" font-weight="700">' + esc(q.c1 || '') + '</text>'
+    + '<text x="' + cx + '" y="832" text-anchor="middle" fill="#ffffff" font-size="50" font-weight="700">' + esc(q.c2 || '') + '</text>'
+    + '<text x="' + cx + '" y="870" text-anchor="middle" fill="#a78bfa" font-size="30" font-weight="700">' + esc(q.c3 || '') + '</text>';
+  var legend = '', lx = [150, 600, 150, 600], ly = [1184, 1184, 1236, 1236];
   for (var j = 0; j < Math.min(4, names.length); j++) {
     var pct = Math.round(segs[j] / total * 1000) / 10;
     legend += '<rect x="' + lx[j] + '" y="' + ly[j] + '" width="22" height="22" rx="5" fill="' + colors[j % colors.length] + '"/><text x="' + (lx[j] + 34) + '" y="' + (ly[j] + 18) + '" fill="#e2e8f0" font-size="27" font-weight="700">' + esc(names[j]) + ' <tspan fill="#9b93c4">' + pct + '%</tspan></text>';
@@ -180,7 +180,7 @@ function buildCandle(q) {
   var raw = (q.ohlc || '').split(';').map(function (c) { return c.split(',').map(Number); }).filter(function (c) { return c.length === 4 && c.every(function (x) { return !isNaN(x); }); });
   if (!raw.length) raw = [[10, 12, 9, 11], [11, 13, 10, 10], [10, 11, 8, 12]];
   var all = []; raw.forEach(function (c) { all.push(c[1], c[2]); });
-  var yTop = 560, yBot = 920, mn = Math.min.apply(null, all), mx = Math.max.apply(null, all); if (mx === mn) mx = mn + 1;
+  var yTop = 640, yBot = 1180, mn = Math.min.apply(null, all), mx = Math.max.apply(null, all); if (mx === mn) mx = mn + 1;
   function Y(v) { return yBot - (v - mn) / (mx - mn) * (yBot - yTop); }
   var n = raw.length, x0 = 150, step = (910 - 150) / (n > 1 ? n - 1 : 1), w = Math.min(56, step * 0.55), out = '';
   for (var i = 0; i < n; i++) {
@@ -188,7 +188,7 @@ function buildCandle(q) {
     var bt = Y(Math.max(c[0], c[3])), bb = Y(Math.min(c[0], c[3]));
     out += '<line x1="' + cx.toFixed(0) + '" y1="' + Y(c[1]).toFixed(0) + '" x2="' + cx.toFixed(0) + '" y2="' + Y(c[2]).toFixed(0) + '" stroke="' + col + '" stroke-width="4" stroke-linecap="round"/><rect x="' + (cx - w / 2).toFixed(0) + '" y="' + bt.toFixed(0) + '" width="' + w.toFixed(0) + '" height="' + Math.max(4, bb - bt).toFixed(0) + '" rx="4" fill="' + col + '"/>';
   }
-  out += '<rect x="150" y="906" width="20" height="20" rx="5" fill="#a78bfa"/><text x="180" y="923" fill="#cbd5e1" font-size="24" font-weight="700">상승</text><rect x="270" y="906" width="20" height="20" rx="5" fill="#f472b6"/><text x="300" y="923" fill="#cbd5e1" font-size="24" font-weight="700">하락</text>';
+  out += '<rect x="150" y="1196" width="20" height="20" rx="5" fill="#a78bfa"/><text x="180" y="1213" fill="#cbd5e1" font-size="24" font-weight="700">상승</text><rect x="270" y="1196" width="20" height="20" rx="5" fill="#f472b6"/><text x="300" y="1213" fill="#cbd5e1" font-size="24" font-weight="700">하락</text>';
   return head(q) + out + foot(q);
 }
 
