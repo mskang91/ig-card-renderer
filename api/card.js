@@ -137,7 +137,7 @@ module.exports = async (req, res) => {
     if (q.debug) { res.status(200).json({ cwd: process.cwd(), dirname: __dirname, fontCount: fonts.length, diag: _fontDiag, families: fonts.map(fontFamily) }); return; }
     const svg = buildSvg(q);
     const resvg = new Resvg(svg, {
-      font: { fontDirs: _fontDir ? [_fontDir] : [], fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: false },
+      font: { fontDirs: _fontDir ? [_fontDir] : [], defaultFontFamily: 'Pretendard', loadSystemFonts: false },
       fitTo: { mode: 'width', value: 1080 }
     });
     const png = resvg.render().asPng();
