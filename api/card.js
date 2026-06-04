@@ -47,7 +47,7 @@ function head(q) {
   const h2 = esc(q.h2 || '');
   const h2acc = esc(q.h2acc || '');
   const date = esc(q.date || '');
-  return `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard">
+  return `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard, 'Noto Sans KR', sans-serif">
 ${DEFS}
 <rect width="1080" height="1080" fill="url(#bg)"/>
 <circle cx="250" cy="150" r="260" fill="#7c3aed" opacity="0.18" filter="url(#softglow)"/>
@@ -103,7 +103,7 @@ module.exports = async (req, res) => {
     const svg = buildSvg(req.query || {});
     const fonts = await getFonts();
     const resvg = new Resvg(svg, {
-      font: { fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: false },
+      font: { fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: true },
       fitTo: { mode: 'width', value: 1080 }
     });
     const png = resvg.render().asPng();
