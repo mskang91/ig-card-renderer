@@ -3,6 +3,36 @@ const fs = require('fs');
 const path = require('path');
 
 // 한글 폰트 로드 — 번들(fonts/ 폴더의 ttf/otf) 우선, 없으면 CDN fetch. 1회 캐시.
+// TTF/OTF의 'name' 테이블에서 family 이름(nameID 1) 추출 — 진단용
+function fontFamily(buf) {
+  try {
+    const numTables = buf.readUInt16BE(4);
+    let nameTbl = 0;
+    for (let i = 0; i < numTables; i++) {
+      const o = 12 + i * 16;
+      if (buf.toString('latin1', o, o + 4) === 'name') { nameTbl = buf.readUInt32BE(o + 8); break; }
+    }
+    if (!nameTbl) return null;
+    const count = buf.readUInt16BE(nameTbl + 2);
+    const strOff = nameTbl + buf.readUInt16BE(nameTbl + 4);
+    let fallback = null;
+    for (let i = 0; i < count; i++) {
+      const r = nameTbl + 6 + i * 12;
+      const pid = buf.readUInt16BE(r);
+      const nameID = buf.readUInt16BE(r + 6);
+      const len = buf.readUInt16BE(r + 8);
+      const off = buf.readUInt16BE(r + 10);
+      if (nameID === 1) {
+        const s = buf.slice(strOff + off, strOff + off + len);
+        const name = (pid === 3 || pid === 0) ? Buffer.from(s).swap16().toString('utf16le') : s.toString('latin1');
+        if (pid === 3) return name;
+        fallback = name;
+      }
+    }
+    return fallback;
+  } catch (e) { return 'err'; }
+}
+
 let _fonts = null;
 let _fontDiag = [];
 async function getFonts() {
@@ -48,7 +78,7 @@ function head(q) {
   const h2 = esc(q.h2 || '');
   const h2acc = esc(q.h2acc || '');
   const date = esc(q.date || '');
-  return `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard, 'Noto Sans KR', sans-serif">
+  return `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard">
 ${DEFS}
 <rect width="1080" height="1080" fill="url(#bg)"/>
 <circle cx="250" cy="150" r="260" fill="#7c3aed" opacity="0.18" filter="url(#softglow)"/>
@@ -103,10 +133,10 @@ module.exports = async (req, res) => {
   try {
     const q = req.query || {};
     const fonts = await getFonts();
-    if (q.debug) { res.status(200).json({ cwd: process.cwd(), dirname: __dirname, fontCount: fonts.length, diag: _fontDiag }); return; }
+    if (q.debug) { res.status(200).json({ cwd: process.cwd(), dirname: __dirname, fontCount: fonts.length, diag: _fontDiag, families: fonts.map(fontFamily) }); return; }
     const svg = buildSvg(q);
     const resvg = new Resvg(svg, {
-      font: { fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: true },
+      font: { fontBuffers: fonts, defaultFontFamily: 'Pretendard', loadSystemFonts: false },
       fitTo: { mode: 'width', value: 1080 }
     });
     const png = resvg.render().asPng();
