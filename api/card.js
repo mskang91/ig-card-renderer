@@ -64,15 +64,24 @@ function esc(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-const DEFS = `<defs>
-<radialGradient id="bg" cx="22%" cy="12%" r="95%"><stop offset="0%" stop-color="#241653"/><stop offset="42%" stop-color="#100a2b"/><stop offset="100%" stop-color="#05050f"/></radialGradient>
-<linearGradient id="violet" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
-<linearGradient id="violet2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient>
+// 토픽별 색 테마 — 그라데이션 ID는 유지, 색만 교체 → bar/line/area 자동 재색
+const THEMES = {
+  violet: { bg: ['#241653', '#100a2b', '#05050f'], a1: '#a78bfa', a2: '#7c3aed', b1: '#c4b5fd', b2: '#8b5cf6', area: '#8b5cf6', sub: '#c4b5fd', acc: '#a78bfa', g1: '#7c3aed', g2: '#8b5cf6' },
+  teal:   { bg: ['#0c3a3f', '#07212a', '#05050f'], a1: '#5eead4', a2: '#0d9488', b1: '#99f6e4', b2: '#14b8a6', area: '#14b8a6', sub: '#99f6e4', acc: '#5eead4', g1: '#0d9488', g2: '#14b8a6' },
+  amber:  { bg: ['#3f2d0c', '#2a1c07', '#05050f'], a1: '#fcd34d', a2: '#d97706', b1: '#fde68a', b2: '#f59e0b', area: '#f59e0b', sub: '#fde68a', acc: '#fcd34d', g1: '#d97706', g2: '#f59e0b' }
+};
+function themeOf(q) { return THEMES[q && q.theme] || THEMES.violet; }
+function defs(t) {
+  return `<defs>
+<radialGradient id="bg" cx="22%" cy="12%" r="95%"><stop offset="0%" stop-color="${t.bg[0]}"/><stop offset="42%" stop-color="${t.bg[1]}"/><stop offset="100%" stop-color="${t.bg[2]}"/></radialGradient>
+<linearGradient id="violet" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${t.a1}"/><stop offset="100%" stop-color="${t.a2}"/></linearGradient>
+<linearGradient id="violet2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${t.b1}"/><stop offset="100%" stop-color="${t.b2}"/></linearGradient>
 <linearGradient id="mag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#ec4899"/></linearGradient>
-<linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.45"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient>
+<linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${t.area}" stop-opacity="0.45"/><stop offset="100%" stop-color="${t.area}" stop-opacity="0"/></linearGradient>
 <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 <filter id="softglow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="26"/></filter>
 </defs>`;
+}
 
 function head(q) {
   const sub = esc(q.sub || '');
@@ -80,17 +89,18 @@ function head(q) {
   const h2 = esc(q.h2 || '');
   const h2acc = esc(q.h2acc || '');
   const date = esc(q.date || '');
+  const t = themeOf(q);
   return `<svg width="1080" height="1350" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard">
-${DEFS}
+${defs(t)}
 <rect width="1080" height="1350" fill="url(#bg)"/>
-<circle cx="250" cy="150" r="260" fill="#7c3aed" opacity="0.18" filter="url(#softglow)"/>
-<circle cx="900" cy="980" r="240" fill="#8b5cf6" opacity="0.12" filter="url(#softglow)"/>
+<circle cx="250" cy="150" r="260" fill="${t.g1}" opacity="0.18" filter="url(#softglow)"/>
+<circle cx="900" cy="980" r="240" fill="${t.g2}" opacity="0.12" filter="url(#softglow)"/>
 <g transform="translate(72,84)"><circle cx="14" cy="6" r="14" fill="url(#violet)"/><text x="42" y="14" fill="#ffffff" font-size="30" font-weight="700">polarisquant</text></g>
 <text x="1008" y="98" text-anchor="end" fill="#9b93c4" font-size="26" font-weight="400">${date}</text>
 <rect x="72" y="128" width="936" height="2" fill="#ffffff" opacity="0.08"/>
-<text x="72" y="276" fill="#c4b5fd" font-size="32" font-weight="700" letter-spacing="3">${sub}</text>
+<text x="72" y="276" fill="${t.sub}" font-size="32" font-weight="700" letter-spacing="3">${sub}</text>
 <text x="72" y="360" fill="#ffffff" font-size="74" font-weight="700">${h1}</text>
-<text x="72" y="448" fill="#ffffff" font-size="74" font-weight="700">${h2}<tspan fill="#a78bfa">${h2acc}</tspan></text>`;
+<text x="72" y="448" fill="#ffffff" font-size="74" font-weight="700">${h2}<tspan fill="${t.acc}">${h2acc}</tspan></text>`;
 }
 
 function foot(q) {
@@ -139,7 +149,7 @@ function buildLine(q) {
   return head(q)
     + '<path d="M' + pts.join(' L') + ' L' + x1 + ',1200 L' + x0 + ',1200 Z" fill="url(#areaFill)"/>'
     + '<polyline points="' + pts.join(' ') + '" fill="none" stroke="url(#violet)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>'
-    + '<circle cx="' + x1 + '" cy="' + ys[n - 1].toFixed(0) + '" r="13" fill="#a78bfa" filter="url(#glow)"/>'
+    + '<circle cx="' + x1 + '" cy="' + ys[n - 1].toFixed(0) + '" r="13" fill="' + themeOf(q).acc + '" filter="url(#glow)"/>'
     + foot(q);
 }
 
